@@ -57,7 +57,7 @@ def detect(session, image_src):
         namesfile = 'data/names'
 
     class_names = load_class_names(namesfile)
-    img = plot_boxes_cv2(image_src, boxes[0], savename='predictions_onnx.jpg', class_names=class_names)
+    img = plot_boxes_cv2(image_src, boxes[0], class_names=class_names)
     return img
 
 
