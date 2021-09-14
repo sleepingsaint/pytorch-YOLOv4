@@ -48,7 +48,7 @@ def detect(session, image_src):
 
     boxes = post_processing(img_in, 0.4, 0.6, outputs)
 
-    num_classes = 80
+    num_classes = 5
     if num_classes == 20:
         namesfile = 'data/voc.names'
     elif num_classes == 80:
@@ -57,8 +57,8 @@ def detect(session, image_src):
         namesfile = 'data/names'
 
     class_names = load_class_names(namesfile)
-    plot_boxes_cv2(image_src, boxes[0], savename='predictions_onnx.jpg', class_names=class_names)
-
+    img = plot_boxes_cv2(image_src, boxes[0], savename='predictions_onnx.jpg', class_names=class_names)
+    return img
 
 
 if __name__ == '__main__':
