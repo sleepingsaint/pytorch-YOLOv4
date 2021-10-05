@@ -6,8 +6,7 @@ import math
 import onnxruntime
 import numpy as np
 from tool.utils import load_class_names, nms_cpu
-from yaspin import yaspin
-from yaspin.spinners import Spinners
+from halo import Halo
 
 import argparse
 
@@ -144,12 +143,10 @@ def detect(session, image_src, class_names, verbose):
     outputs = session.run(None, {input_name: img_in})
     end = time.time()
 
-    post_start = time.time()
     boxes = post_processing(img_in, 0.4, 0.6, outputs, verbose)
-    post_end = time.time()
 
     image_src = plot_boxes_cv2(image_src, boxes[0], class_names, verbose)
-    return image_src, (end - start), (post_end - post_start)
+    return image_src, (end - start)
 
 # main function to run the inference
 def runInference(model, video_path, output_path, num_frames, class_names, verbose):
@@ -176,7 +173,7 @@ def runInference(model, video_path, output_path, num_frames, class_names, verbos
     frame_count = 0
     input_fps = int(video.get(cv2.CAP_PROP_FPS))
 
-    with yaspin(getattr(Spinners, "bouncingBall"), text="Loading the frames") as sp:
+    with Halo(spinner="dots", text="Loading the frames") as sp:
       while(True):
           ret, frame = video.read()
           frame_count += 1
@@ -185,11 +182,10 @@ def runInference(model, video_path, output_path, num_frames, class_names, verbos
               # print(f"Frame {frame_count}")
               sp.text = f"Frame {frame_count}"
               
-              detection, inference_time, processing_time = detect(session, frame, class_names, verbose)
+              detection, inference_time= detect(session, frame, class_names, verbose)
               
               inference_fps = round(1 / inference_time, 2)
-              processing_fps = round(1 / processing_time, 2)
-              cv2.putText(detection, f"{input_fps} / {inference_fps} / {processing_fps}", (50, 50), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 2)
+              cv2.putText(detection, f"Input FPS: {input_fps} | Inference FPS: {inference_fps}", (50, 50), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0), 2)
 
               result.write(detection)
 
