@@ -168,10 +168,10 @@ def runInference(model, video_path, output_path, num_frames, class_names, verbos
         print("clearing the output path")
         os.remove(output_path)
         
-    result = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*'MP4V'), 10, frame_size)
+    input_fps = int(video.get(cv2.CAP_PROP_FPS))
+    result = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*'MP4V'), input_fps, frame_size)
 
     frame_count = 0
-    input_fps = int(video.get(cv2.CAP_PROP_FPS))
 
     with Halo(spinner="dots", text="Loading the frames") as sp:
       while(True):
