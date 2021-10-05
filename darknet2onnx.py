@@ -10,7 +10,7 @@ from tool.utils import *
 from tool.darknet2onnx import *
 
 
-def main(cfg_file, weight_file, image_path, batch_size):
+def main(cfg_file, weight_file, image_path, batch_size, num_classes):
 
     if batch_size <= 0:
         onnx_path_demo = transform_to_onnx(cfg_file, weight_file, batch_size)
@@ -25,11 +25,11 @@ def main(cfg_file, weight_file, image_path, batch_size):
     print("The model expects input shape: ", session.get_inputs()[0].shape)
 
     image_src = cv2.imread(image_path)
-    detect(session, image_src)
+    detect(session, image_src, num_classes)
 
 
 
-def detect(session, image_src):
+def detect(session, image_src, num_classes):
     IN_IMAGE_H = session.get_inputs()[0].shape[2]
     IN_IMAGE_W = session.get_inputs()[0].shape[3]
 
@@ -48,7 +48,6 @@ def detect(session, image_src):
 
     boxes = post_processing(img_in, 0.4, 0.6, outputs)
 
-    num_classes = 5
     if num_classes == 20:
         namesfile = 'data/voc.names'
     elif num_classes == 80:
@@ -57,18 +56,16 @@ def detect(session, image_src):
         namesfile = 'data/names'
 
     class_names = load_class_names(namesfile)
-    img = plot_boxes_cv2(image_src, boxes[0], class_names=class_names)
-    return img
+    plot_boxes_cv2(image_src, boxes[0], savename='predictions_onnx.jpg', class_names=class_names)
 
 
 if __name__ == '__main__':
-    print("Converting to onnx and running demo ...")
-    if len(sys.argv) == 5:
-        cfg_file = sys.argv[1]
-        weight_file = sys.argv[2]
-        image_path = sys.argv[3]
-        batch_size = int(sys.argv[4])
-        main(cfg_file, weight_file, image_path, batch_size)
-    else:
-        print('Please run this way:\n')
-        print('  python demo_onnx.py <cfgFile> <weightFile> <imageFile> <batchSize>')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-c', '--config', type=str, required=True, help="Path to the config file")
+    parser.add_argument('-w', '--weight', type=str, required=True, help="Path to the weight file")
+    parser.add_argument('-i', '--input', type=str, required=True, help="Path to the input image file")
+    parser.add_argument('-b', '--batch_size', type=int, default=-1, help="Batch Size")
+    parser.add_argument('-n', '--num_classes', type=int, default=5, help="Number of classes model trained on")
+    args = parser.parse_args()
+
+    main(args.config, args.weight, args.input, args.batch_size, args.num_classes)
